@@ -11,4 +11,7 @@
                 #:where
                 #:create-table
                 #:insert-into
-                #:set=))
+                #:set=)
+  (:export #:make-action-map
+           #:setup
+           #:defaction))

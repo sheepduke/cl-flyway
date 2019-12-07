@@ -28,9 +28,9 @@ migration work.
 CONNECTION is a connected database, default to current mito connection."
   (let ((mito:*connection* connection))
     (mito:ensure-table-exists 'flyway-history)
-    (let* ((max-version (get-max-version))
+    (let* ((max-version (if-let (v (get-max-version)) v ""))
            (action-list (filter-actions action-map max-version)))
-      (do-migration action-list connection))))
+      (do-migration action-list))))
 
 (defmacro defaction (action-map version description &body body)
   "Define a migration action for specific version.
@@ -55,12 +55,12 @@ NIL."
      (dbi:prepare connection
                   "select max(version) from flyway_history")))))
 
-(defun do-migration (actions &optional (connection mito:*connection*))
+(defun do-migration (actions)
   "For each action in ACTIONS list, run the related function."
   (dolist (action actions)
     (let (start-time end-time)
       (setf start-time (local-time:now))
-      (funcall (action-function action) connection)
+      (funcall (action-function action))
       (setf end-time (local-time:now))
       (insert-dao (make-instance 'flyway-history
                                  :version (action-version action)
